@@ -1,3 +1,8 @@
+/**
+ * @file bind函数的polyfill
+ * @author brucexyj@gmail.com
+ */
+
 define(function (require) {
   // 是否浏览器原生支持
   var isNativeSupport = typeof Function.prototype.bind === 'function';

@@ -4,8 +4,7 @@
  */
 
 define(function (require) {
-  var events = require('events');
-  var eventbus = require('eventbus');
+  var eventbus = require('./eventbus');
 
   var isNativeSupport = 'onhashchange' in window;
 

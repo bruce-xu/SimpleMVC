@@ -4,7 +4,7 @@
  */
 
 define(function (require) {
-	var extend = require('extend');
+	var extend = require('./tools/extend');
 
   function Events() {
     this._events = {};
@@ -96,7 +96,15 @@ define(function (require) {
     }
   };
 
+  /**
+   * 给某个对象赋予拥有自定义事件的能力
+   * @param {Object} obj 待处理的对象
+   * @return 处理完的对象
+   */
   Events.enable = function (obj) {
+    obj._events = obj._events || {};
+    extend(obj, Events.prototype);
 
+    return obj;
   };
 });

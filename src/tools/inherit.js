@@ -4,8 +4,11 @@
  */
 
 define(function (require) {
-	function inherit(parentClass, childClass) {
-		childClass.prototype = new parentClass();
-		childClass.prototype.constructor = childClass;
+	function Empty() {}
+
+	function inherit(ParentClass, ChildClass) {
+		Empty.prototype = ParentClass.prototype;
+		ChildClass.prototype = new Empty();
+		ChildClass.prototype.constructor = ChildClass;
 	}
 });
