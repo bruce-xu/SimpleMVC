@@ -8,7 +8,16 @@ define(function (require) {
 
 	function inherit(ParentClass, ChildClass) {
 		Empty.prototype = ParentClass.prototype;
+
+		if (typeof ChildClass === 'undefined') {
+			ChildClass = function () {};
+		}
+
 		ChildClass.prototype = new Empty();
 		ChildClass.prototype.constructor = ChildClass;
+
+		return ChildClass;
 	}
+
+	return inherit;
 });
