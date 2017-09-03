@@ -6,6 +6,8 @@
 define(function (require) {
   var inherit = require('./tools/inherit');
   var extend = require('./tools/extend');
+  var Enum = require('./enum');
+  var ServerData = require('./serverdata');
 
   function Model() {
     initActions(this.actions);
@@ -16,6 +18,8 @@ define(function (require) {
   }
 
   function initActions(actions) {
+    var promises = [];
+
     for (var key in actions) {
       if (actions.hasOwnProperty(key)) {
         var action = actions[key];
@@ -26,21 +30,30 @@ define(function (require) {
           };
         }
 
-        if (action instanceof Array && action.length) {
+        if (action instanceof Array) {
+          var promiseChain = Promise.resolve();
+
           for (var i = 0, len = action.length; i < len; i++) {
             var item = action[i];
+
             if (i === 0 && !item.init) {
               break;
             }
 
             item.init = true;
-            loadAction(item, true);
+            promiseChain.then(function () {
+              return loadAction(item, true);
+            });
           }
+
+          promises.push(promiseChain);
         } else {
-          loadAction(action, true);
+          promises.push(loadAction(action, true));
         }
       }
     }
+
+    return Promise.all(promises);
   };
 
   function loadAction(action, isInit) {
@@ -52,7 +65,11 @@ define(function (require) {
       return;
     }
 
-
+    if (action.type && action.type.toLowerCase() === 'enum') {
+      return new Enum(action.data || []);
+    } else {
+      return new ServerData(action);
+    }
   }
     
   Model.prototype.request = function () {

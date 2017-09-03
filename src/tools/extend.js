@@ -22,13 +22,18 @@ define(function (require) {
     } else {
       for (var i = 0, len = sources.length; i < len; i++) {
         var source = sources[i];
-        for (var key in source) {
-          if (source.hasOwnProperty(key)) {
-            target[key] = source[key];
+
+        if (typeof source === 'object' && source) {
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
           }
         }
       }
     }
+
+    return target;
   }
 
   return extend;
