@@ -6,6 +6,8 @@
 define(function (require) {
   var inherit = require('./tools/inherit');
   var extend = require('./tools/extend');
+  var capitalized = require('./tools/capitalized');
+  var eventbus = require('./eventbus');
   var Enum = require('./enum');
   var ServerData = require('./serverdata');
 
@@ -30,6 +32,8 @@ define(function (require) {
           };
         }
 
+        action.name = key;
+
         if (action instanceof Array) {
           var promiseChain = Promise.resolve();
 
@@ -53,7 +57,9 @@ define(function (require) {
       }
     }
 
-    return Promise.all(promises);
+    Promise.all(promises).then(function (datas) {
+      eventbus.fire('dataready', datas);
+    });
   };
 
   function loadAction(action, isInit) {
@@ -65,11 +71,21 @@ define(function (require) {
       return;
     }
 
+    var promise;
     if (action.type && action.type.toLowerCase() === 'enum') {
-      return new Enum(action.data || []);
+      promise = new Enum(action.data || []).get();
     } else {
-      return new ServerData(action);
+      promise = new ServerData(action).get();
     }
+
+    var processFunc = 'process' + capitalized(action.name);
+    if (typeof action[processFunc] === 'function') {
+      return promise.then(function (data) {
+        processFunc(data);
+      });
+    }
+
+    return promise;
   }
     
   Model.prototype.request = function () {
@@ -80,6 +96,28 @@ define(function (require) {
     var SubModel = inherit(Model, SubModel);
 
     extend(SubModel.prototype, options);
+
+    var prototype = SubModel.prototype;
+
+    var actions = options.actions || {};
+    for (var key in actions) {
+      if (actions.hasOwnProperty(key)) {
+        var action = actions[key];
+
+        if (typeof action === 'string') {
+          action = {
+            url: action
+          };
+        }
+
+        action.name = key;
+
+        if (typeof action.process === 'function') {
+          var processName = 'process' + capitalized(key);
+          prototype[processName] = action.process;
+        }
+      }
+    }
 
     return SubModel;
   };
