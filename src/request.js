@@ -4,16 +4,30 @@
  */
 
 define(function (require) {
+  var extend = require('extend');
+
   var isNativeSupport = typeof window.fetch === 'function';
 
-  var fetch = isNativeSupport
-    ? window.fetch
-    : function (url, options) {
-      return new Promise(function (resolve, reject) {
-        ajax(url, options);
-      });
-    };
+  function fetch(url, options) {
+    options = options || {};
 
+    return isNativeSupport
+      ? window.fetch(url, extend(options, {credentials: 'same-origin'})).then(function (response) {
+          if (response.ok && (response.status >= 200 && response.status < 300 || response.status === 304)) {
+            if (options.dataType && options.dataType.toLowerCase() === 'json') {
+              return response.json();
+            }
+
+            return response.text();
+          }
+
+          throw new Error(response.status);
+        })
+      : new Promise(function (resolve, reject) {
+          ajax(url, options, resolve, reject);
+        });
+  }
+  
   function ajax(url, options) {
   	var httpRequest;
 
@@ -34,9 +48,9 @@ define(function (require) {
       var readyState = httpRequest.readyState;
       var status = httpRequest.status;
       if (readyState === 4 && (status >= 200 && status < 300 || status === 304)) {
-        success();
+        success(httpRequest.response);
       } else {
-        fail();
+        fail(status);
       }
     };
 
