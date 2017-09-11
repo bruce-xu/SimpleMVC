@@ -2,12 +2,26 @@ define(function (require) {
   var inherit = require('./tools/inherit');
   var extend = require('./tools/extend');
   var capitalized = require('./tools/capitalized');
+  var promisify = require('./tools/promisify');
   var eventbus = require('./eventbus');
   var Enum = require('./enum');
   var ServerData = require('./serverdata');
 
   function View() {
-    initActions(this.actions);
+    // this.init && this.init();
+    // this.beforeLoad && this.beforeLoad();
+    // this.model && this.model.init && this.model.init();
+
+    var init = promisify(this.init, this);
+    var beforeLoad = promisify(this.beforeLoad, this);
+    var modelInit = promisify(this.model.init, this.model);
+
+    init()
+      .then(beforeLoad)
+      .then(modelInit)
+      .then(function () {
+        this.render();
+      });
   }
 
   function SubView() {
@@ -29,12 +43,34 @@ define(function (require) {
   
   View.extend = function (options) {
     var SubView = inherit(View, SubView);
-
-    extend(SubView.prototype, options);
-
     var prototype = SubView.prototype;
+
+    extend(prototype, options);
+
 
 
     return SubView;
   };
 });
+
+
+// Demo
+var model = require('./model');
+View.extend({
+  model: model,
+  init: function () {
+
+  },
+  beforeLoad: function () {
+
+  },
+  loaded: function (data) {
+
+  },
+  events: {
+    '#btn click': 'onBtnClick'
+  },
+  render: function () {
+
+  }
+})

@@ -93,10 +93,9 @@ define(function (require) {
 
   Model.extend = function (options) {
     var SubModel = inherit(Model, SubModel);
-
-    extend(SubModel.prototype, options);
-
     var prototype = SubModel.prototype;
+
+    extend(prototype, options);
 
     var actions = options.actions || {};
     for (var key in actions) {
